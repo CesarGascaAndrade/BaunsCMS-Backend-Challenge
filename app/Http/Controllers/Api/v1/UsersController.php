@@ -148,7 +148,13 @@ class UsersController extends Controller
         } catch (JWTException $e) {
             return response()->json(['error' => 'could_not_create_token'], 500);
         }
-        return response()->json(compact('credentials', 'token'));
+
+        $login = User::all()->where('email', $request->get('email'))->first();
+        
+        return response()->json([
+            'token' => $token,
+            'user' => $login
+        ]);
     }
     public function register(Request $request)
     {
@@ -174,6 +180,7 @@ class UsersController extends Controller
         $token = JWTAuth::fromUser($user);
         return response()->json(compact('user', 'token'), 201);
     }
+
     public function getAuthenticatedUser()
     {
         try {
