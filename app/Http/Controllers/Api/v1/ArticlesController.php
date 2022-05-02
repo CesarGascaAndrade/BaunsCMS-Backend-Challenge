@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Article;
+use App\Models\User;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\Storage;
@@ -18,6 +20,17 @@ class ArticlesController extends Controller
     public function index()
     {
         $articles = Article::all();
+
+        foreach ($articles as $i => $article) {
+            $author = User::select()->where('id', $article->user_id)->first();
+            $approved_by = User::select()->where('id', $article->approved_by)->first();
+            $category = Category::select()->where('id', $article->category_id)->first();
+
+            $articles[$i]->author = $author;
+            $articles[$i]->approved_by = $approved_by;
+            $articles[$i]->category = $category;
+        }
+        //error_log(print_r($articles, true));
         return response()->json($articles);
     }
 
@@ -49,6 +62,9 @@ class ArticlesController extends Controller
     {
         $this->authorize('create', Article::class);
 
+
+
+
         $validatedData = $request->validate([
             'title' => 'required|string|unique:articles|max:255',
             'content' => 'required',
@@ -57,6 +73,7 @@ class ArticlesController extends Controller
         ]);
 
         $article = new Article($request->all());
+
         $path = $request->image->store('public/articles');
 
         $article->image = $path;
@@ -73,6 +90,14 @@ class ArticlesController extends Controller
      */
     public function show(Article $article)
     {
+        $author = User::select()->where('id', $article->user_id)->first();
+        $approved_by = User::select()->where('id', $article->approved_by)->first();
+        $category = Category::select()->where('id', $article->category_id)->first();
+
+        $article->author = $author;
+        $article->approved_by = $approved_by;
+        $article->category = $category;
+
         return response()->json($article);
     }
 
@@ -98,21 +123,36 @@ class ArticlesController extends Controller
     {
         $this->authorize('update', $article);
 
+        $validatedData = $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'required',
+            'category_id' => 'required|exists:categories,id',
+            'image' => 'image|dimensions:min_width=200,min_height=200',
+        ]);
+
+        if (isset($request->image)) {
+            $path = $request->image->store('public/articles');
+    
+            $article->image = $path;
+        }
+
+        $article->approved = 0;
+
         $data = $request->all();
 
-        $data['approved'] = 0;
+        unset($data['image']);
 
         $article->update($data);
 
-        return response()->json($article, 200);
+        return response()->json($article, 201);
     }
-    
+
     public function approve(Request $request, Article $article)
     {
         $this->authorize('approve', $article);
 
         $user = JWTAuth::parseToken()->authenticate();
-        
+
         $article->update([
             'approved' => 1,
             'approved_by' => $user->id
