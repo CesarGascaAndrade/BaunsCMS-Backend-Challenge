@@ -29,8 +29,8 @@ class ArticlesController extends Controller
             $articles[$i]->author = $author;
             $articles[$i]->approved_by = $approved_by;
             $articles[$i]->category = $category;
-            $articles[$i]->brief = substr( strip_tags($article->content), 0, 45);
-            
+            $articles[$i]->brief = substr(strip_tags($article->content), 0, 45);
+            $articles[$i]->image = url(str_replace('public', 'storage', $article->image));
         }
         //error_log(print_r($articles, true));
         return response()->json($articles);
@@ -96,6 +96,8 @@ class ArticlesController extends Controller
         $article->author = $author;
         $article->approved_by = $approved_by;
         $article->category = $category;
+        $article->brief = substr(strip_tags($article->content), 0, 45);
+        $article->image = url(str_replace('public', 'storage', $article->image));
 
         return response()->json($article);
     }
