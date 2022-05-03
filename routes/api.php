@@ -38,7 +38,7 @@ Route::group(['middleware' => ['jwt.verify']], function () {
     Route::post('v1/user/register',     'App\Http\Controllers\Api\v1\UsersController@register');
     Route::get('v1/users',              'App\Http\Controllers\Api\v1\UsersController@index');
     Route::get('v1/user/{user}',        'App\Http\Controllers\Api\v1\UsersController@show');
-    Route::put('v1/user/{user}',        'App\Http\Controllers\Api\v1\UsersController@update');
+    Route::post('v1/user/{user}',        'App\Http\Controllers\Api\v1\UsersController@update');
     Route::get('v1/user',               'App\Http\Controllers\Api\v1\UsersController@getAuthenticatedUser');
     
     Route::post('v1/articles',                  'App\Http\Controllers\Api\v1\ArticlesController@store');

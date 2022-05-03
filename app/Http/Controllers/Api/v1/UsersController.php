@@ -84,7 +84,27 @@ class UsersController extends Controller
     {
         $this->authorize('update', User::class);
 
-        $user->update($request->all());
+        $data = $request->all();
+
+        if(!empty($data['password'])) {
+            $data['password'] = Hash::make($request->get('password'));
+        }
+        else {
+            unset($data['password']);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255',
+            'role' => 'required',
+            'password' => 'string|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors()->toJson(), 400);
+        }
+
+        $user->update($data);
 
         return response()->json($user, 200);
     }
@@ -156,6 +176,7 @@ class UsersController extends Controller
             'user' => $login
         ]);
     }
+
     public function register(Request $request)
     {
         $this->authorize('create', User::class);
