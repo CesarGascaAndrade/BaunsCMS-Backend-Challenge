@@ -29,6 +29,8 @@ class ArticlesController extends Controller
             $articles[$i]->author = $author;
             $articles[$i]->approved_by = $approved_by;
             $articles[$i]->category = $category;
+            $articles[$i]->brief = substr( strip_tags($article->content), 0, 45);
+            
         }
         //error_log(print_r($articles, true));
         return response()->json($articles);
@@ -61,9 +63,6 @@ class ArticlesController extends Controller
     public function store(Request $request)
     {
         $this->authorize('create', Article::class);
-
-
-
 
         $validatedData = $request->validate([
             'title' => 'required|string|unique:articles|max:255',
@@ -132,7 +131,7 @@ class ArticlesController extends Controller
 
         if (isset($request->image)) {
             $path = $request->image->store('public/articles');
-    
+
             $article->image = $path;
         }
 
